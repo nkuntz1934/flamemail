@@ -14,6 +14,15 @@ export function Footer() {
       >
         Source code
       </a>
+      <p className="mt-2">
+        Part of{" "}
+        <a
+          href="https://devbin.tools"
+          className="text-zinc-500 underline decoration-zinc-700 underline-offset-2 transition-colors hover:text-flame-400"
+        >
+          devbin.tools
+        </a>
+      </p>
     </footer>
   );
 }

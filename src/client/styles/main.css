@@ -41,8 +41,8 @@ body::before {
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.06), transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.04), transparent 50%);
+    radial-gradient(circle at 20% 20%, rgba(249, 115, 22, 0.02), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(249, 115, 22, 0.015), transparent 50%);
   pointer-events: none;
   z-index: 0;
 }
