@@ -22,7 +22,7 @@ Outbound Email          │   POST /api/inboxes/:addr/send                  │
                         │                                                 │
 Browser                 │   fetch() handler                               │
   → HTTPS ─────────────►│     → Hono API routes (D1 Sessions middleware)  │
-  ← WebSocket ◄────────►│     → Durable Object: hibernation WebSocket    │
+  ← WebSocket ◄────────►│     → Durable Object: hibernation WebSocket     │
                         │     → Static Assets: React SPA                  │
                         │                                                 │
 Cron (hourly)           │   scheduled() handler                           │
