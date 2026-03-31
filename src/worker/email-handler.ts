@@ -5,7 +5,7 @@ import { NewEmailNotification } from "@/shared/contracts";
 import { createDb } from "@/worker/db";
 import { attachments, domains, emails, inboxes } from "@/worker/db/schema";
 import { createLogger, errorContext } from "@/worker/logger";
-import { getRelayPartner, sendRelayNotification } from "@/worker/services/relay";
+import { resolveRelayAlias, sendRelayNotification } from "@/worker/services/relay";
 import {
   getAttachmentStorageKey,
   getBodyStorageKey,
@@ -69,7 +69,7 @@ export async function handleIncomingEmail(
   }
 
   const db = createDb(env.DB);
-  const [domainRecord, inbox] = await Promise.all([
+  const [domainRecord, directInbox] = await Promise.all([
     db.query.domains.findFirst({
       where: eq(domains.domain, recipient.domain),
     }),
@@ -80,6 +80,11 @@ export async function handleIncomingEmail(
       ),
     }),
   ]);
+
+  // If no direct inbox found, check if this is a relay alias address
+  const inbox = directInbox ?? (domainRecord?.isActive
+    ? await resolveRelayAlias(`${recipient.canonicalLocalPart}@${recipient.domain}`, db)
+    : null);
 
   if (!domainRecord?.isActive || !inbox) {
     logger.warn("email_rejected", "Rejected inbound email for missing or disabled inbox", {
@@ -249,25 +254,19 @@ export async function handleIncomingEmail(
       }
     })());
 
-    // Relay notification: if this is a relay inbox, notify the partner via email
-    if (inbox.isRelay) {
+    // Relay notification: if this inbox has a notification email registered, send it
+    if (inbox.isRelay && inbox.notificationEmail) {
       ctx.waitUntil((async () => {
         try {
-          const partner = await getRelayPartner(env, inbox.id, db);
-          if (!partner?.notificationEmail) {
-            return;
-          }
-
           await sendRelayNotification(
             env,
-            partner.notificationEmail,
-            partner.domain,
+            inbox.notificationEmail!,
+            inbox.domain,
             parsed.subject ?? "(no subject)",
           );
 
-          logger.info("relay_email_notification_sent", "Sent relay notification to partner", {
-            recipientInbox: inbox.fullAddress,
-            partnerInbox: partner.fullAddress,
+          logger.info("relay_email_notification_sent", "Sent relay notification", {
+            inboxAddress: inbox.fullAddress,
           });
         } catch (error) {
           logger.warn("relay_email_notification_failed", "Failed to send relay notification", {

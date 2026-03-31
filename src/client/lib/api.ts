@@ -357,8 +357,7 @@ export async function createRelay(passphrase: string, ttlHours: TempMailboxTtlHo
   });
 
   if (bookmark) {
-    setStoredBookmark(getInboxBookmarkScope(response.addressA), bookmark);
-    setStoredBookmark(getInboxBookmarkScope(response.addressB), bookmark);
+    setStoredBookmark(getInboxBookmarkScope(response.inboxAddress), bookmark);
   }
 
   return response;

@@ -70,10 +70,10 @@ export function registerRelayRoutes(app: Hono<AppBindings>) {
       const result = await createOrJoinRelay(c.env, passphrase, body.ttlHours, c.get("db"));
       return c.json(
         CreateRelayResponse.create({
-          addressA: result.addressA,
-          addressB: result.addressB,
-          domainA: result.domainA,
-          domainB: result.domainB,
+          inboxAddress: result.inboxAddress,
+          aliasAddress: result.aliasAddress,
+          primaryDomain: result.primaryDomain,
+          aliasDomain: result.aliasDomain,
           token: result.token,
           ttlHours: result.ttlHours,
           expiresAt: result.expiresAt.toISOString(),

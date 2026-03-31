@@ -1,5 +1,5 @@
 import { EmailMessage } from "cloudflare:email";
-import { and, eq, or } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { createMimeMessage } from "mimetext";
 import { nanoid } from "nanoid";
 import type { TempMailboxTtlHours } from "@/shared/contracts";
@@ -26,11 +26,7 @@ async function hashPassphrase(passphrase: string): Promise<string> {
     .join("");
 }
 
-async function deriveRelayAddresses(
-  passphrase: string,
-  domainA: string,
-  domainB: string,
-): Promise<{ localA: string; localB: string; addressA: string; addressB: string }> {
+async function deriveLocalPart(passphrase: string): Promise<string> {
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
@@ -48,27 +44,15 @@ async function deriveRelayAddresses(
       hash: "SHA-256",
     },
     keyMaterial,
-    160, // 20 bytes: 10 per local part
+    80, // 10 bytes → 10 char local part
   );
 
   const bytes = new Uint8Array(bits);
   const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
 
-  function bytesToLocalPart(slice: Uint8Array): string {
-    return Array.from(slice)
-      .map((b) => alphabet[b % alphabet.length])
-      .join("");
-  }
-
-  const localA = bytesToLocalPart(bytes.slice(0, 10));
-  const localB = bytesToLocalPart(bytes.slice(10, 20));
-
-  return {
-    localA,
-    localB,
-    addressA: `${localA}@${domainA}`,
-    addressB: `${localB}@${domainB}`,
-  };
+  return Array.from(bytes)
+    .map((b) => alphabet[b % alphabet.length])
+    .join("");
 }
 
 export async function createOrJoinRelay(
@@ -79,98 +63,82 @@ export async function createOrJoinRelay(
 ) {
   const hash = await hashPassphrase(passphrase);
 
-  // Check if a relay pair already exists for this passphrase
+  // Check if relay already exists for this passphrase
   const existingPair = await db.query.relayPairs.findFirst({
     where: eq(relayPairs.passphraseHash, hash),
   });
 
   if (existingPair) {
-    // "Joiner" path — second party arriving
-    const [inboxA, inboxB] = await Promise.all([
-      db.query.inboxes.findFirst({ where: eq(inboxes.id, existingPair.inboxAId) }),
-      db.query.inboxes.findFirst({ where: eq(inboxes.id, existingPair.inboxBId) }),
-    ]);
+    // Join existing relay — return the same inbox with a new session token
+    const inbox = await db.query.inboxes.findFirst({
+      where: eq(inboxes.id, existingPair.inboxId),
+    });
 
-    if (!inboxA || !inboxB) {
+    if (!inbox) {
       throw new PublicError("Relay channel has expired");
     }
 
-    // Create a session token for side B
     const token = await createSessionToken(
       env,
-      { type: "user", address: inboxB.fullAddress },
+      { type: "user", address: inbox.fullAddress },
       hoursToMs(ttlHours),
     );
 
-    logger.info("relay_joined", "Second party joined relay channel", {
-      addressA: inboxA.fullAddress,
-      addressB: inboxB.fullAddress,
+    logger.info("relay_joined", "Party joined existing relay channel", {
+      inboxAddress: inbox.fullAddress,
+      aliasAddress: existingPair.aliasAddress,
     });
 
     return {
-      addressA: inboxA.fullAddress,
-      addressB: inboxB.fullAddress,
-      domainA: inboxA.domain,
-      domainB: inboxB.domain,
+      inboxAddress: inbox.fullAddress,
+      aliasAddress: existingPair.aliasAddress,
+      primaryDomain: inbox.domain,
+      aliasDomain: existingPair.aliasDomain,
       token,
       ttlHours,
-      expiresAt: inboxB.expiresAt!,
+      expiresAt: inbox.expiresAt!,
     };
   }
 
-  // "Creator" path — first party
-  // Verify both relay domains are active
+  // Create new relay — one inbox on domain A, alias on domain B
   const activeDomains = await db.query.domains.findMany({
     where: eq(domains.isActive, true),
   });
 
   const activeDomainNames = activeDomains.map((d) => d.domain);
-  const domainA = RELAY_DOMAINS.find((d) => activeDomainNames.includes(d));
-  const domainB = RELAY_DOMAINS.find((d) => activeDomainNames.includes(d) && d !== domainA);
+  const primaryDomain = RELAY_DOMAINS.find((d) => activeDomainNames.includes(d));
+  const aliasDomain = RELAY_DOMAINS.find((d) => activeDomainNames.includes(d) && d !== primaryDomain);
 
-  if (!domainA || !domainB) {
+  if (!primaryDomain || !aliasDomain) {
     throw new PublicError("Relay domains are not available");
   }
 
-  const { localA, localB, addressA, addressB } = await deriveRelayAddresses(
-    passphrase,
-    domainA,
-    domainB,
-  );
+  const localPart = await deriveLocalPart(passphrase);
+  const inboxAddress = `${localPart}@${primaryDomain}`;
+  const aliasAddress = `${localPart}@${aliasDomain}`;
 
-  // Check for address collisions with existing inboxes
-  const [existingA, existingB] = await Promise.all([
-    db.query.inboxes.findFirst({ where: eq(inboxes.fullAddress, addressA) }),
-    db.query.inboxes.findFirst({ where: eq(inboxes.fullAddress, addressB) }),
+  // Check for collisions
+  const [existingInbox, existingAlias] = await Promise.all([
+    db.query.inboxes.findFirst({ where: eq(inboxes.fullAddress, inboxAddress) }),
+    db.query.inboxes.findFirst({ where: eq(inboxes.fullAddress, aliasAddress) }),
   ]);
 
-  if (existingA || existingB) {
+  if (existingInbox || existingAlias) {
     throw new PublicError("Could not create relay channel — please try a different passphrase");
   }
 
   const createdAt = new Date();
   const expiresAt = computeInboxExpiry(createdAt, ttlHours);
-  const inboxAId = nanoid();
-  const inboxBId = nanoid();
+  const inboxId = nanoid();
   const pairId = nanoid();
 
   try {
     await db.batch([
       db.insert(inboxes).values({
-        id: inboxAId,
-        localPart: localA,
-        domain: domainA,
-        fullAddress: addressA,
-        isPermanent: false,
-        isRelay: true,
-        createdAt,
-        expiresAt,
-      }),
-      db.insert(inboxes).values({
-        id: inboxBId,
-        localPart: localB,
-        domain: domainB,
-        fullAddress: addressB,
+        id: inboxId,
+        localPart,
+        domain: primaryDomain,
+        fullAddress: inboxAddress,
         isPermanent: false,
         isRelay: true,
         createdAt,
@@ -179,64 +147,65 @@ export async function createOrJoinRelay(
       db.insert(relayPairs).values({
         id: pairId,
         passphraseHash: hash,
-        inboxAId,
-        inboxBId,
+        inboxId,
+        aliasAddress,
+        aliasDomain,
         createdAt,
         expiresAt,
       }),
     ] as any);
   } catch (error: any) {
-    // Handle concurrent creation — UNIQUE constraint on passphrase_hash
     if (error?.message?.includes("UNIQUE constraint")) {
-      logger.info("relay_concurrent_create", "Concurrent relay creation detected, retrying as join");
+      logger.info("relay_concurrent_create", "Concurrent relay creation, retrying as join");
       return createOrJoinRelay(env, passphrase, ttlHours, db);
     }
     throw error;
   }
 
-  // Create session token for side A (the creator)
   const token = await createSessionToken(
     env,
-    { type: "user", address: addressA },
+    { type: "user", address: inboxAddress },
     hoursToMs(ttlHours),
   );
 
   logger.info("relay_created", "Created new relay channel", {
-    addressA,
-    addressB,
-    domainA,
-    domainB,
+    inboxAddress,
+    aliasAddress,
+    primaryDomain,
+    aliasDomain,
     ttlHours,
   });
 
   return {
-    addressA,
-    addressB,
-    domainA,
-    domainB,
+    inboxAddress,
+    aliasAddress,
+    primaryDomain,
+    aliasDomain,
     token,
     ttlHours,
     expiresAt,
   };
 }
 
-export async function getRelayPartner(
-  env: Env,
-  inboxId: string,
+/**
+ * Resolve an alias address to the real inbox.
+ * Called by the email handler when no inbox is found by the recipient address directly.
+ */
+export async function resolveRelayAlias(
+  aliasAddress: string,
   db: Database,
 ): Promise<InboxRecord | null> {
   const pair = await db.query.relayPairs.findFirst({
-    where: or(eq(relayPairs.inboxAId, inboxId), eq(relayPairs.inboxBId, inboxId)),
+    where: eq(relayPairs.aliasAddress, aliasAddress),
   });
 
   if (!pair) {
     return null;
   }
 
-  const partnerId = pair.inboxAId === inboxId ? pair.inboxBId : pair.inboxAId;
   return (
     (await db.query.inboxes.findFirst({
-      where: eq(inboxes.id, partnerId),
+      where: eq(inboxes.id, pair.inboxId),
     })) ?? null
   );
 }

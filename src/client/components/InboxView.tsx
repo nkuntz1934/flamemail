@@ -171,16 +171,15 @@ export function InboxView({ onDeleted }: InboxViewProps) {
   if (!session) {
     return (
       <main className="animate-slide-up">
-        <section className="flex min-h-[320px] items-center justify-center rounded-2xl border border-zinc-800/60 bg-zinc-900/50 p-8">
+        <section className="flex min-h-[320px] items-center justify-center rounded-xl border border-zinc-800/60 bg-zinc-900/50 p-8">
           <div className="flex flex-col items-center gap-4 text-center">
-            <span className="inline-grid h-14 w-14 place-items-center rounded-full bg-zinc-800/60">
+            <span className="inline-flex h-14 w-14 items-center justify-center rounded-xl bg-zinc-800/60">
               <ShieldAlert className="h-7 w-7 text-zinc-600" />
             </span>
             <div>
-              <span className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-600">Missing Session</span>
-              <h1 className="text-xl font-semibold text-zinc-200">This inbox is not stored locally</h1>
-              <p className="mt-3 max-w-md text-sm text-zinc-500">
-                Open it from the device that created it before the inbox expires, or sign in as an admin for permanent inboxes.
+              <h1 className="text-lg font-semibold text-zinc-200">Inbox not available</h1>
+              <p className="mt-2 max-w-md text-sm text-zinc-500">
+                Open it from the device that created it, or sign in as admin for permanent inboxes.
               </p>
             </div>
           </div>
@@ -190,39 +189,39 @@ export function InboxView({ onDeleted }: InboxViewProps) {
   }
 
   return (
-    <main className="animate-slide-up space-y-5">
-      {/* Inbox hero bar */}
-      <section className="flex flex-col gap-4 rounded-2xl border border-zinc-800/60 bg-zinc-900/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+    <main className="animate-slide-up space-y-4">
+      {/* Inbox header */}
+      <section className="flex flex-col gap-3 rounded-xl border border-zinc-800/60 bg-zinc-900/50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wider text-flame-400">Live Inbox</span>
+            <span className="text-xs font-medium text-zinc-400">Live Inbox</span>
             <span className={`h-1.5 w-1.5 rounded-full ${socketColors[socketState] ?? "bg-zinc-600"}`} />
             <span className="text-xs text-zinc-500">{socketState}</span>
           </div>
-          <h1 className="mt-1 truncate text-lg font-semibold text-zinc-100">{address}</h1>
+          <h1 className="mt-1 truncate text-base font-semibold text-zinc-100">{address}</h1>
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
             {inbox?.isPermanent ? (
               <span className="text-sm text-zinc-500">Permanent inbox</span>
             ) : countdown ? (
               <span className="flex items-center gap-1.5 text-sm text-zinc-500">
-                <Timer className="h-3.5 w-3.5 text-flame-400" />
+                <Timer className="h-3.5 w-3.5 text-blue-400" />
                 {countdown}
               </span>
             ) : (
-              <span className="text-sm text-zinc-500">Loading inbox details...</span>
+              <span className="text-sm text-zinc-500">Loading...</span>
             )}
           </div>
           {isAdminInspectingTemporaryInbox ? (
-            <p className="mt-2 inline-flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300">
+            <p className="mt-2 inline-flex items-center gap-2 rounded-md border border-amber-500/20 bg-amber-500/10 px-3 py-1 text-xs font-medium text-amber-300">
               <ShieldAlert className="h-3 w-3" />
-              Admin inspection mode: mailbox contents are read-only, but you can delete this temporary inbox.
+              Admin read-only mode
             </p>
           ) : null}
         </div>
 
         <div className="flex shrink-0 flex-wrap gap-2">
           <button
-            className="flex items-center gap-1.5 rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-700/60"
+            className="flex items-center gap-1.5 rounded-md border border-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800"
             type="button"
             onClick={handleCopy}
           >
@@ -231,7 +230,7 @@ export function InboxView({ onDeleted }: InboxViewProps) {
           </button>
           {!adminMode ? (
             <button
-              className="flex items-center gap-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/10 px-3 py-1.5 text-xs font-medium text-indigo-300 transition-colors hover:bg-indigo-500/20"
+              className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500"
               type="button"
               onClick={() => {
                 setReplyTo(undefined);
@@ -244,17 +243,16 @@ export function InboxView({ onDeleted }: InboxViewProps) {
             </button>
           ) : null}
           <button
-            className="flex items-center gap-1.5 rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-700/60"
+            className="flex items-center gap-1.5 rounded-md border border-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 transition-colors hover:bg-zinc-800"
             type="button"
             onClick={() => void refresh()}
           >
             <RefreshCw className="h-3.5 w-3.5" />
-            Refresh
           </button>
           {!adminMode && availableExtensions.map((ttlHours) => (
             <button
               key={ttlHours}
-              className="flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-md border border-emerald-500/20 bg-emerald-500/10 px-3 py-1.5 text-xs font-medium text-emerald-300 transition-colors hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50"
               type="button"
               disabled={extendingTo !== null}
               onClick={() => void handleExtendInbox(ttlHours)}
@@ -265,12 +263,12 @@ export function InboxView({ onDeleted }: InboxViewProps) {
           ))}
           {inbox && !inbox.isPermanent ? (
             <button
-              className="flex items-center gap-1.5 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20"
+              className="flex items-center gap-1.5 rounded-md border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-500/20"
               type="button"
               onClick={handleDeleteInbox}
             >
               <Trash2 className="h-3.5 w-3.5" />
-              {adminMode ? "Delete mailbox" : "Delete"}
+              {adminMode ? "Delete" : "Delete"}
             </button>
           ) : null}
         </div>
@@ -301,8 +299,7 @@ export function InboxView({ onDeleted }: InboxViewProps) {
         </p>
       ) : null}
 
-      {/* Email list + detail — desktop: side-by-side, mobile: toggle */}
-      <div className="grid gap-5 lg:grid-cols-[minmax(280px,400px)_minmax(0,1fr)]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(280px,400px)_minmax(0,1fr)]">
         <div className={selectedEmailId ? "hidden lg:block" : ""}>
           <EmailList
             inboxAddress={address}

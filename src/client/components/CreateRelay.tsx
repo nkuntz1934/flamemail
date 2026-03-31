@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
-import { Eye, EyeOff, Loader2, Lock, Zap } from "lucide-react";
+import { Copy, Eye, EyeOff, Loader2, Lock, Zap } from "lucide-react";
 import { TurnstileWidget } from "@/client/components/TurnstileWidget";
+import { toast } from "@/client/components/Toast";
 import {
   TEMP_MAILBOX_TTL_HOURS,
   createRelay,
@@ -13,9 +14,9 @@ import {
 } from "../lib/api";
 
 const TTL_OPTION_DETAILS: Record<TempMailboxTtlHours, { hint: string; label: string }> = {
-  24: { label: "24 hours", hint: "standard" },
-  48: { label: "48 hours", hint: "extended" },
-  72: { label: "72 hours", hint: "max" },
+  24: { label: "24 hours", hint: "Standard" },
+  48: { label: "48 hours", hint: "Extended" },
+  72: { label: "72 hours", hint: "Maximum" },
 };
 
 const TTL_OPTIONS = TEMP_MAILBOX_TTL_HOURS.map((value) => ({
@@ -67,14 +68,14 @@ export function CreateRelay({ onCreated }: CreateRelayProps) {
     }
   };
 
-  const handlePickSide = (address: string, token: string) => {
+  const handleOpenInbox = () => {
     if (!result) {
       return;
     }
 
     const session: InboxSession = {
-      address,
-      token,
+      address: result.inboxAddress,
+      token: result.token,
       ttlHours: result.ttlHours as TempMailboxTtlHours,
       expiresAt: result.expiresAt,
     };
@@ -83,79 +84,83 @@ export function CreateRelay({ onCreated }: CreateRelayProps) {
     onCreated(session);
   };
 
+  const handleCopyAddress = async (address: string) => {
+    try {
+      await navigator.clipboard.writeText(address);
+      toast.success("Address copied");
+    } catch {
+      toast.error("Could not copy address");
+    }
+  };
+
   if (result) {
     return (
-      <section className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-zinc-900 to-zinc-900/80 p-6">
-        <span className="mb-2 inline-block text-xs font-semibold uppercase tracking-wider text-indigo-400">
-          Relay Ready
-        </span>
-        <h2 className="text-lg font-semibold text-zinc-100">Choose your side</h2>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-          Share the passphrase with your counterpart. They will join from the other side.
+      <section className="rounded-xl border border-zinc-800/60 bg-zinc-900/50 p-5">
+        <h2 className="text-[13px] font-semibold text-zinc-200">Relay channel ready</h2>
+        <p className="mt-1 text-[13px] text-zinc-500">
+          One shared inbox, two addresses. Both domains route to the same mailbox.
         </p>
 
-        <div className="mt-5 space-y-3">
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-xl border border-zinc-700/60 bg-zinc-800/80 px-4 py-3 text-left transition-colors hover:border-indigo-500/40 hover:bg-zinc-800"
-            onClick={() => handlePickSide(result.addressA, result.token)}
-          >
-            <span className="inline-grid h-8 w-8 shrink-0 place-items-center rounded-full bg-indigo-500/10 text-indigo-400">
-              A
-            </span>
-            <div className="min-w-0 flex-1">
-              <strong className="block truncate text-sm font-medium text-zinc-200">
-                {result.addressA}
-              </strong>
-              <span className="text-xs text-zinc-500">{result.domainA}</span>
+        <div className="mt-4 space-y-2">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+            <span className="text-[11px] font-medium text-zinc-500">Primary address</span>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <code className="truncate text-sm font-medium text-zinc-200">{result.inboxAddress}</code>
+              <button type="button" onClick={() => handleCopyAddress(result.inboxAddress)} className="shrink-0 text-zinc-500 hover:text-zinc-300">
+                <Copy className="h-3.5 w-3.5" />
+              </button>
             </div>
-          </button>
+          </div>
 
-          <button
-            type="button"
-            className="flex w-full items-center gap-3 rounded-xl border border-zinc-700/60 bg-zinc-800/80 px-4 py-3 text-left transition-colors hover:border-indigo-500/40 hover:bg-zinc-800"
-            onClick={() => handlePickSide(result.addressB, result.token)}
-          >
-            <span className="inline-grid h-8 w-8 shrink-0 place-items-center rounded-full bg-indigo-500/10 text-indigo-400">
-              B
-            </span>
-            <div className="min-w-0 flex-1">
-              <strong className="block truncate text-sm font-medium text-zinc-200">
-                {result.addressB}
-              </strong>
-              <span className="text-xs text-zinc-500">{result.domainB}</span>
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-3">
+            <span className="text-[11px] font-medium text-zinc-500">Alias address</span>
+            <div className="mt-1 flex items-center justify-between gap-2">
+              <code className="truncate text-sm font-medium text-zinc-200">{result.aliasAddress}</code>
+              <button type="button" onClick={() => handleCopyAddress(result.aliasAddress)} className="shrink-0 text-zinc-500 hover:text-zinc-300">
+                <Copy className="h-3.5 w-3.5" />
+              </button>
             </div>
-          </button>
+          </div>
         </div>
 
-        <button
-          type="button"
-          className="mt-4 text-xs text-zinc-500 transition-colors hover:text-zinc-300"
-          onClick={() => {
-            setResult(null);
-            setPassphrase("");
-          }}
-        >
-          Start over
-        </button>
+        <p className="mt-3 text-xs text-zinc-500">
+          Share the passphrase with the other party. They enter it on the other domain and get access to the same inbox.
+        </p>
+
+        <div className="mt-4 flex gap-2">
+          <button
+            type="button"
+            className="flex-1 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            onClick={handleOpenInbox}
+          >
+            Open inbox
+          </button>
+          <button
+            type="button"
+            className="rounded-lg border border-zinc-800 px-3 py-2.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800"
+            onClick={() => {
+              setResult(null);
+              setPassphrase("");
+            }}
+          >
+            Reset
+          </button>
+        </div>
       </section>
     );
   }
 
   return (
-    <section className="rounded-2xl border border-indigo-500/20 bg-gradient-to-br from-zinc-900 to-zinc-900/80 p-6">
-      <span className="mb-2 inline-block text-xs font-semibold uppercase tracking-wider text-indigo-400">
-        Secure Relay
-      </span>
-      <h2 className="text-lg font-semibold text-zinc-100">Create a relay channel</h2>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-        Two inboxes on different domains, linked by a shared passphrase. Each party uses one side.
+    <section className="rounded-xl border border-zinc-800/60 bg-zinc-900/50 p-5">
+      <h2 className="text-[13px] font-semibold text-zinc-200">Secure relay channel</h2>
+      <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
+        One shared inbox accessible from two different domains. Both parties enter the same passphrase.
       </p>
 
-      <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
-        <label className="block space-y-1.5">
-          <span className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
-            <Lock className="h-3.5 w-3.5" />
+      <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
+        <label className="block space-y-1">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-zinc-400">
+            <Lock className="h-3 w-3" />
             Shared passphrase
           </span>
           <div className="relative">
@@ -167,7 +172,7 @@ export function CreateRelay({ onCreated }: CreateRelayProps) {
               minLength={8}
               maxLength={256}
               autoComplete="off"
-              className="w-full rounded-xl border border-zinc-700/60 bg-zinc-800/80 px-4 py-2.5 pr-10 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
+              className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 pr-10 text-sm text-zinc-200 outline-none transition-colors placeholder:text-zinc-600 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20"
             />
             <button
               type="button"
@@ -175,34 +180,33 @@ export function CreateRelay({ onCreated }: CreateRelayProps) {
               onClick={() => setShowPassphrase(!showPassphrase)}
               tabIndex={-1}
             >
-              {showPassphrase ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassphrase ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
             </button>
           </div>
-          <span className="block text-xs text-zinc-600">
-            Minimum 8 characters. Both parties must use the exact same passphrase.
+          <span className="block text-[11px] text-zinc-600">
+            Minimum 8 characters. Both parties must enter the exact same passphrase.
           </span>
         </label>
 
-        <div className="space-y-2">
-          <span className="block text-sm font-medium text-zinc-400">Channel lifetime</span>
-          <div className="grid gap-2 sm:grid-cols-3">
+        <div className="space-y-1.5">
+          <span className="block text-xs font-medium text-zinc-400">Channel lifetime</span>
+          <div className="grid grid-cols-3 gap-2">
             {TTL_OPTIONS.map((option) => {
               const selected = option.value === ttlHours;
-
               return (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => setTtlHours(option.value)}
                   className={[
-                    "rounded-xl border px-4 py-3 text-left transition-colors",
+                    "rounded-lg border px-3 py-2 text-left transition-colors",
                     selected
-                      ? "border-indigo-500/50 bg-indigo-500/10 text-zinc-100"
-                      : "border-zinc-700/60 bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800",
+                      ? "border-blue-500/50 bg-blue-500/10 text-zinc-100"
+                      : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300",
                   ].join(" ")}
                 >
                   <strong className="block text-sm font-semibold">{option.label}</strong>
-                  <span className="mt-1 block text-xs uppercase tracking-wider text-zinc-500">{option.hint}</span>
+                  <span className="text-[11px] text-zinc-500">{option.hint}</span>
                 </button>
               );
             })}
@@ -217,19 +221,19 @@ export function CreateRelay({ onCreated }: CreateRelayProps) {
         />
 
         <button
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/20 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           type="submit"
           disabled={submitting || !passphrase.trim() || passphrase.trim().length < 8 || !turnstileToken}
         >
           {submitting ? (
-            <><Loader2 className="h-4 w-4 animate-spin" /> Creating relay...</>
+            <><Loader2 className="h-4 w-4 animate-spin" /> Creating...</>
           ) : (
             <><Zap className="h-4 w-4" /> Create relay</>
           )}
         </button>
       </form>
 
-      {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
+      {error ? <p className="mt-3 text-xs text-red-400">{error}</p> : null}
     </section>
   );
 }

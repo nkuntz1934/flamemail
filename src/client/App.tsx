@@ -31,12 +31,12 @@ function HomePage({
     <main className="animate-slide-up pt-2">
       <div className="grid gap-6 lg:grid-cols-[minmax(280px,440px)_minmax(0,1fr)]">
         <div>
-          <div className="mb-3 flex gap-1 rounded-xl bg-zinc-900/50 p-1">
+          <div className="mb-3 flex rounded-lg border border-zinc-800/60 bg-zinc-900/50 p-0.5">
             <button
               type="button"
               onClick={() => setActiveTab("inbox")}
               className={[
-                "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 activeTab === "inbox"
                   ? "bg-zinc-800 text-zinc-100 shadow-sm"
                   : "text-zinc-500 hover:text-zinc-300",
@@ -49,14 +49,14 @@ function HomePage({
               type="button"
               onClick={() => setActiveTab("relay")}
               className={[
-                "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
+                "flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 activeTab === "relay"
                   ? "bg-zinc-800 text-zinc-100 shadow-sm"
                   : "text-zinc-500 hover:text-zinc-300",
               ].join(" ")}
             >
               <Zap className="h-3.5 w-3.5" />
-              Secure Relay
+              Relay
             </button>
           </div>
 
@@ -67,18 +67,15 @@ function HomePage({
           )}
         </div>
 
-        <section className="rounded-2xl border border-zinc-800/60 bg-zinc-900/50 p-6">
-          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-zinc-500">
-            <Mail className="h-3.5 w-3.5" />
-            Recent inboxes
-          </h2>
+        <section className="rounded-xl border border-zinc-800/60 bg-zinc-900/50 p-5">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-zinc-500">Recent inboxes</h2>
 
           {sessions.length === 0 ? (
-            <p className="mt-4 text-sm leading-relaxed text-zinc-500">
-              No inboxes yet. Created addresses are saved on this device and removed when they expire.
+            <p className="mt-3 text-sm text-zinc-500">
+              No inboxes yet. Created addresses are saved on this device and expire automatically.
             </p>
           ) : (
-            <div className="mt-4 space-y-1.5">
+            <div className="mt-3 space-y-1">
               {sessions.map((session) => {
                 const expires = new Date(session.expiresAt);
                 const remaining = expires.getTime() - Date.now();
@@ -87,23 +84,21 @@ function HomePage({
                 return (
                   <Link
                     key={session.address}
-                    className="group flex items-center gap-3 rounded-xl border border-zinc-800/50 bg-zinc-800/30 px-4 py-3 transition-colors hover:border-flame-500/30 hover:bg-zinc-800/60"
+                    className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-zinc-800/50"
                     to={`/inbox/${encodeURIComponent(session.address)}`}
                   >
-                    <span className={`inline-grid h-7 w-7 shrink-0 place-items-center rounded-full ${
-                      alive ? "bg-flame-500/10 text-flame-400" : "bg-zinc-800 text-zinc-600"
+                    <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${
+                      alive ? "bg-blue-600/10 text-blue-400" : "bg-zinc-800 text-zinc-600"
                     }`}>
                       <Mail className="h-3.5 w-3.5" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <strong className="block truncate text-sm font-medium text-zinc-200 group-hover:text-flame-400">
+                      <strong className="block truncate text-sm font-medium text-zinc-300 group-hover:text-zinc-100">
                         {session.address}
                       </strong>
                       <span className="flex items-center gap-1 text-xs text-zinc-500">
                         <Clock className="h-3 w-3" />
-                        {alive
-                          ? `expires ${expires.toLocaleString()}`
-                          : "expired"}
+                        {alive ? `expires ${expires.toLocaleString()}` : "expired"}
                       </span>
                     </div>
                   </Link>

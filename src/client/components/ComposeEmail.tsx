@@ -42,27 +42,27 @@ export function ComposeEmail({ address, token, replyTo, replySubject, onClose, o
   };
 
   return (
-    <div className="rounded-2xl border border-indigo-500/20 bg-zinc-900/80 p-4">
+    <div className="rounded-xl border border-zinc-800/60 bg-zinc-900/50 p-4">
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">Compose</span>
+        <h3 className="text-sm font-semibold text-zinc-200">Compose</h3>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+          className="rounded-md p-1 text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
 
       <form className="space-y-3" onSubmit={handleSubmit}>
-        <div className="space-y-1">
+        <div>
           <label className="block text-xs font-medium text-zinc-500">From</label>
-          <div className="rounded-lg border border-zinc-700/40 bg-zinc-800/40 px-3 py-2 text-sm text-zinc-400">
+          <div className="mt-1 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-400">
             {address}
           </div>
         </div>
 
-        <div className="space-y-1">
+        <div>
           <label className="block text-xs font-medium text-zinc-500">To</label>
           <input
             type="email"
@@ -70,11 +70,11 @@ export function ComposeEmail({ address, token, replyTo, replySubject, onClose, o
             onChange={(e) => setTo(e.target.value)}
             placeholder="recipient@example.com"
             autoComplete="off"
-            className="w-full rounded-lg border border-zinc-700/60 bg-zinc-800/80 px-3 py-2 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
+            className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 outline-none transition-colors placeholder:text-zinc-600 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20"
           />
         </div>
 
-        <div className="space-y-1">
+        <div>
           <label className="block text-xs font-medium text-zinc-500">Subject</label>
           <input
             type="text"
@@ -82,18 +82,18 @@ export function ComposeEmail({ address, token, replyTo, replySubject, onClose, o
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Subject"
             autoComplete="off"
-            className="w-full rounded-lg border border-zinc-700/60 bg-zinc-800/80 px-3 py-2 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
+            className="mt-1 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 outline-none transition-colors placeholder:text-zinc-600 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20"
           />
         </div>
 
-        <div className="space-y-1">
+        <div>
           <label className="block text-xs font-medium text-zinc-500">Message</label>
           <textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
             placeholder="Write your message..."
             rows={6}
-            className="w-full resize-y rounded-lg border border-zinc-700/60 bg-zinc-800/80 px-3 py-2 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
+            className="mt-1 w-full resize-y rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 outline-none transition-colors placeholder:text-zinc-600 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20"
           />
         </div>
 
@@ -101,14 +101,14 @@ export function ComposeEmail({ address, token, replyTo, replySubject, onClose, o
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg border border-zinc-700/60 bg-zinc-800/60 px-4 py-2 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-700/60"
+            className="rounded-md border border-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-400 transition-colors hover:bg-zinc-800"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={submitting || !to.trim() || !to.includes("@") || !body.trim()}
-            className="flex items-center gap-1.5 rounded-lg bg-indigo-500/20 px-4 py-2 text-xs font-medium text-indigo-300 transition-colors hover:bg-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
             Send

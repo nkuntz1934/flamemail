@@ -7,15 +7,15 @@ interface HeaderProps {
 
 export function Header({ sessionCount = 0 }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-zinc-800/60 bg-zinc-950/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-zinc-800/60 bg-zinc-950/90 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link to="/" className="flex items-center gap-3 transition-opacity hover:opacity-80">
-          <span className="inline-grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/20">
-            <Mail className="h-5 w-5 text-white" />
-          </span>
+        <Link to="/" className="flex items-center gap-2.5 transition-opacity hover:opacity-80">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600">
+            <Mail className="h-4 w-4 text-white" />
+          </div>
           <span className="hidden sm:block">
             <strong className="block text-sm font-semibold text-zinc-100">Disposable Mail</strong>
-            <small className="block text-xs text-zinc-500">Temporary inboxes &amp; secure relay</small>
+            <small className="block text-[11px] text-zinc-500">Secure inboxes & relay</small>
           </span>
         </Link>
 
@@ -24,10 +24,10 @@ export function Header({ sessionCount = 0 }: HeaderProps) {
             to="/"
             end
             className={({ isActive }) =>
-              `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              `flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-indigo-500/10 text-indigo-400"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                  ? "bg-zinc-800 text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
               }`
             }
           >
@@ -35,18 +35,18 @@ export function Header({ sessionCount = 0 }: HeaderProps) {
             <span className="hidden sm:inline">Create</span>
           </NavLink>
           {sessionCount > 0 ? (
-            <span className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-sm font-medium text-zinc-500">
+            <span className="flex items-center gap-1 px-2 py-1.5 text-sm text-zinc-500">
               <Inbox className="h-3.5 w-3.5" />
-              <span className="text-xs">{sessionCount}</span>
+              <span className="text-xs tabular-nums">{sessionCount}</span>
             </span>
           ) : null}
           <NavLink
             to="/about"
             className={({ isActive }) =>
-              `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              `flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-indigo-500/10 text-indigo-400"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                  ? "bg-zinc-800 text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
               }`
             }
           >
@@ -56,10 +56,10 @@ export function Header({ sessionCount = 0 }: HeaderProps) {
           <NavLink
             to="/admin"
             className={({ isActive }) =>
-              `flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+              `flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
                 isActive
-                  ? "bg-indigo-500/10 text-indigo-400"
-                  : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                  ? "bg-zinc-800 text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-900 hover:text-zinc-200"
               }`
             }
           >

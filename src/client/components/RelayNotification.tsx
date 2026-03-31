@@ -36,23 +36,21 @@ export function RelayNotification({ address, token, hasNotification }: RelayNoti
   };
 
   return (
-    <section className="rounded-2xl border border-indigo-500/20 bg-zinc-900/50 p-4">
+    <section className="rounded-xl border border-zinc-800/60 bg-zinc-900/50 p-4">
       <div className="flex items-center gap-2">
         {enabled ? (
-          <BellRing className="h-4 w-4 text-indigo-400" />
+          <BellRing className="h-4 w-4 text-blue-400" />
         ) : (
           <Bell className="h-4 w-4 text-zinc-500" />
         )}
-        <span className="text-xs font-semibold uppercase tracking-wider text-indigo-400">
-          Relay Notifications
-        </span>
+        <span className="text-xs font-semibold text-zinc-300">Relay Notifications</span>
       </div>
 
       {enabled ? (
         <div className="mt-2 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-300">
+          <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300">
             <BellRing className="h-3 w-3" />
-            Email notifications enabled
+            Enabled
           </span>
           <button
             type="button"
@@ -74,15 +72,15 @@ export function RelayNotification({ address, token, hasNotification }: RelayNoti
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="your-email@example.com"
+                placeholder="you@example.com"
                 autoComplete="off"
-                className="w-full rounded-lg border border-zinc-700/60 bg-zinc-800/80 py-2 pl-9 pr-3 text-sm text-zinc-100 outline-none transition-colors placeholder:text-zinc-600 focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/30"
+                className="w-full rounded-lg border border-zinc-800 bg-zinc-900 py-2 pl-9 pr-3 text-sm text-zinc-200 outline-none transition-colors placeholder:text-zinc-600 focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20"
               />
             </div>
             <button
               type="submit"
               disabled={submitting || !email.trim() || !email.includes("@")}
-              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-indigo-500/20 px-4 py-2 text-xs font-medium text-indigo-300 transition-colors hover:bg-indigo-500/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex shrink-0 items-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Bell className="h-3.5 w-3.5" />}
               Enable

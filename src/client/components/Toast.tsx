@@ -29,7 +29,7 @@ const icons: Record<ToastType, typeof CheckCircle> = {
 const styles: Record<ToastType, string> = {
   success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
   error: "border-red-500/30 bg-red-500/10 text-red-300",
-  info: "border-flame-500/30 bg-flame-500/10 text-flame-300",
+  info: "border-blue-500/30 bg-blue-500/10 text-blue-300",
 };
 
 export function ToastContainer() {
@@ -70,7 +70,7 @@ function ToastNotification({ item, onDismiss }: { item: ToastItem; onDismiss: (i
 
   return (
     <div
-      className={`animate-slide-up flex max-w-sm items-center gap-3 rounded-xl border px-4 py-3 shadow-lg backdrop-blur-sm ${styles[item.type]}`}
+      className={`animate-slide-up flex max-w-sm items-center gap-3 rounded-lg border px-4 py-3 shadow-lg backdrop-blur-sm ${styles[item.type]}`}
     >
       <Icon className="h-4 w-4 shrink-0" />
       <span className="text-sm font-medium">{item.message}</span>

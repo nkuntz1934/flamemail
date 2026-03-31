@@ -81,19 +81,18 @@ export const relayPairs = sqliteTable(
   {
     id: text("id").primaryKey(),
     passphraseHash: text("passphrase_hash").notNull().unique(),
-    inboxAId: text("inbox_a_id")
+    inboxId: text("inbox_id")
       .notNull()
       .references(() => inboxes.id, { onDelete: "cascade" }),
-    inboxBId: text("inbox_b_id")
-      .notNull()
-      .references(() => inboxes.id, { onDelete: "cascade" }),
+    aliasAddress: text("alias_address").notNull().unique(),
+    aliasDomain: text("alias_domain").notNull(),
     createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .default(sql`(unixepoch() * 1000)`),
     expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
   },
   (table) => [
-    index("idx_relay_pairs_inbox_a").on(table.inboxAId),
-    index("idx_relay_pairs_inbox_b").on(table.inboxBId),
+    index("idx_relay_pairs_inbox").on(table.inboxId),
+    index("idx_relay_pairs_alias").on(table.aliasAddress),
   ],
 );

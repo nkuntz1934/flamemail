@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Globe, Loader2, Sparkles } from "lucide-react";
+import { Globe, Loader2, Plus } from "lucide-react";
 import { TurnstileWidget } from "@/client/components/TurnstileWidget";
 import {
   TEMP_MAILBOX_TTL_HOURS,
@@ -12,9 +12,9 @@ import {
 } from "../lib/api";
 
 const TTL_OPTION_DETAILS: Record<TempMailboxTtlHours, { hint: string; label: string }> = {
-  24: { label: "24 hours", hint: "standard" },
-  48: { label: "48 hours", hint: "extended" },
-  72: { label: "72 hours", hint: "max" },
+  24: { label: "24 hours", hint: "Standard" },
+  48: { label: "48 hours", hint: "Extended" },
+  72: { label: "72 hours", hint: "Maximum" },
 };
 
 const TTL_OPTIONS = TEMP_MAILBOX_TTL_HOURS.map((value) => ({
@@ -104,28 +104,19 @@ export function CreateInbox({ onCreated }: CreateInboxProps) {
   };
 
   return (
-    <section className="rounded-2xl border border-flame-500/20 bg-gradient-to-br from-zinc-900 to-zinc-900/80 p-6">
-      <span className="mb-2 inline-block text-xs font-semibold uppercase tracking-wider text-flame-400">
-        Instant Address
-      </span>
-      <h2 className="text-lg font-semibold text-zinc-100">Create a temporary inbox</h2>
-      <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-        Get a disposable address that lives on this device until it expires. Emails arrive in real time.
-      </p>
-      <p className="mt-2 text-xs leading-relaxed text-zinc-500">
-        Plus aliases like <span className="font-medium text-zinc-400">name+tag@domain</span> route to the same inbox, and each message shows the exact delivered address.
+    <section className="rounded-xl border border-zinc-800/60 bg-zinc-900/50 p-5">
+      <h2 className="text-[13px] font-semibold text-zinc-200">New disposable inbox</h2>
+      <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
+        Generate a temporary address. Emails arrive in real time.
       </p>
 
-      <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
-        <label className="block space-y-1.5">
-          <span className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
-            <Globe className="h-3.5 w-3.5" />
-            Domain
-          </span>
+      <form className="mt-4 space-y-3" onSubmit={handleSubmit}>
+        <label className="block space-y-1">
+          <span className="text-xs font-medium text-zinc-400">Domain</span>
           <select
             value={selectedDomain}
             onChange={(event) => setSelectedDomain(event.target.value)}
-            className="w-full rounded-xl border border-zinc-700/60 bg-zinc-800/80 px-4 py-2.5 text-sm text-zinc-100 outline-none transition-colors focus:border-flame-500/50 focus:ring-1 focus:ring-flame-500/30"
+            className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-zinc-200 outline-none transition-colors focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20"
           >
             {domains.length === 0 ? <option value="">No active domains</option> : null}
             {domains.map((domain) => (
@@ -136,26 +127,25 @@ export function CreateInbox({ onCreated }: CreateInboxProps) {
           </select>
         </label>
 
-        <div className="space-y-2">
-          <span className="block text-sm font-medium text-zinc-400">Mailbox lifetime</span>
-          <div className="grid gap-2 sm:grid-cols-3">
+        <div className="space-y-1.5">
+          <span className="block text-xs font-medium text-zinc-400">Lifetime</span>
+          <div className="grid grid-cols-3 gap-2">
             {TTL_OPTIONS.map((option) => {
               const selected = option.value === ttlHours;
-
               return (
                 <button
                   key={option.value}
                   type="button"
                   onClick={() => setTtlHours(option.value)}
                   className={[
-                    "rounded-xl border px-4 py-3 text-left transition-colors",
+                    "rounded-lg border px-3 py-2 text-left transition-colors",
                     selected
-                      ? "border-flame-500/50 bg-flame-500/10 text-zinc-100"
-                      : "border-zinc-700/60 bg-zinc-800/60 text-zinc-400 hover:bg-zinc-800",
+                      ? "border-blue-500/50 bg-blue-500/10 text-zinc-100"
+                      : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300",
                   ].join(" ")}
                 >
                   <strong className="block text-sm font-semibold">{option.label}</strong>
-                  <span className="mt-1 block text-xs uppercase tracking-wider text-zinc-500">{option.hint}</span>
+                  <span className="text-[11px] text-zinc-500">{option.hint}</span>
                 </button>
               );
             })}
@@ -170,27 +160,27 @@ export function CreateInbox({ onCreated }: CreateInboxProps) {
         />
 
         <button
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-flame-500 to-flame-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-flame-500/20 transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:brightness-100"
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
           type="submit"
           disabled={loading || submitting || !selectedDomain || !turnstileToken}
         >
           {submitting ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> Creating...</>
           ) : (
-            <><Sparkles className="h-4 w-4" /> Create inbox</>
+            <><Plus className="h-4 w-4" /> Create inbox</>
           )}
         </button>
       </form>
 
       {loading ? (
-        <p className="mt-4 flex items-center gap-2 text-sm text-zinc-500">
-          <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Loading available domains...
+        <p className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+          <Loader2 className="h-3 w-3 animate-spin" />
+          Loading domains...
         </p>
       ) : null}
-      {error ? <p className="mt-4 text-sm text-red-400">{error}</p> : null}
+      {error ? <p className="mt-3 text-xs text-red-400">{error}</p> : null}
       {!loading && domains.length === 0 ? (
-        <p className="mt-4 text-sm text-zinc-500">No domains available yet. An admin needs to add one first.</p>
+        <p className="mt-3 text-xs text-zinc-500">No domains available. An admin needs to add one first.</p>
       ) : null}
     </section>
   );

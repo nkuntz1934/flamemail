@@ -10,10 +10,10 @@ export const CreateRelayRequest = eg.object({
 export type CreateRelayRequest = TypeFromCodec<typeof CreateRelayRequest>;
 
 export const CreateRelayResponse = eg.object({
-  addressA: eg.string,
-  addressB: eg.string,
-  domainA: eg.string,
-  domainB: eg.string,
+  inboxAddress: eg.string,
+  aliasAddress: eg.string,
+  primaryDomain: eg.string,
+  aliasDomain: eg.string,
   token: eg.string,
   ttlHours: eg.number,
   expiresAt: eg.string,
